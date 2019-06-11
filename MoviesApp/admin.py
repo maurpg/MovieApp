@@ -1,3 +1,3 @@
 from django.contrib import admin
-
-# Register your models here.
+from MoviesApp.models import Movie , Actor , Director , Movie_Rate
+admin.site.register(Movie)

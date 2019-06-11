@@ -10,12 +10,12 @@ class MovieForm(forms.ModelForm):
             'title',
             'duration',
             'detail',
-            'trailer_url'
+            'trailer_url',
             'director',
             'genere',
             'languaje',
             'country',
-            'actors'
+            'image',
          ]
 
         labels = {
@@ -27,7 +27,7 @@ class MovieForm(forms.ModelForm):
             'genere':'Genere',
             'languaje':'Languaje',
             'country':'Country',
-            'actors':'Actor',
+            'image':'Image',
         }
 
         widgets = {
@@ -39,7 +39,8 @@ class MovieForm(forms.ModelForm):
             'genere':forms.Select(attrs={'class': 'form-control'}),
             'languaje': forms.Select(attrs={'class': 'form-control'}),
             'country': forms.TextInput(attrs={'class': 'form-control'}),
-            'actors':forms.MultipleChoiceField(attrs={'class': 'form-control'})
+        
+
 
 
         }
@@ -60,4 +61,60 @@ class MovieActorForm(forms.ModelForm):
             'age':'Age'
         }
 
-        
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'age': forms.TextInput(attrs={'class': 'form-control'})
+        }
+
+
+class MovieDirectorForm(forms.ModelForm):
+
+    class Meta:
+        model = Director
+
+        fields = [
+            'name',
+            'age'
+        ]
+
+        labels = {
+            'name':'Name',
+            'age':'Age'
+        }
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'age': forms.TextInput(attrs={'class': 'form-control'})
+        }
+
+
+class MovieRateForm(forms.ModelForm):
+
+    class Meta:
+        model = Movie_Rate
+
+        fields = [
+            'movie',
+            'coment'
+        ]
+
+        labels = {
+            'name':'Name',
+            'coment':'coment'
+        }
+
+        widgets = {
+            'movie': forms.Select(attrs={'class': 'form-control'}),
+            'coment': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class LoginForm(forms.Form):
+    user_name = forms.CharField(label='user_name' , max_length=100)
+    password = forms.CharField(label='password' , widget=forms.PasswordInput)
+
+class RegisterForm(forms.Form):
+    user_name = forms.CharField(label = 'user_name' , max_length=100)
+    password =  forms.CharField(label='password' , widget=forms.PasswordInput)
+    confirm_password = forms.CharField(label='confirm password', widget=forms.PasswordInput)
+
