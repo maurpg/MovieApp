@@ -1,69 +1,134 @@
-from django.shortcuts import render
-from django.shortcuts import redirect
-from django.views import View
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, DestroyAPIView
+from rest_framework.renderers import JSONRenderer
 from MoviesApp.models import *
-from MoviesApp.forms import LoginForm
-from django.contrib.auth import login as auth_login, authenticate
+from MoviesApp.api.serializer import MovieSerializer, MovieSerializerRest
+from MoviesApp.forms import *
 from django.shortcuts import HttpResponse
+from django.views.generic import ListView, CreateView, UpdateView, DetailView
+from .queryset import search
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework import mixins
+from rest_framework import generics
+from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication, BaseAuthentication
+from rest_framework import authtoken
+from .api.permissions import IsAuthenticatedOrReadOnlyCustom, PermitionsAlterMovies
+from .api.filters import MovieFilter
 
 
+class MovieList(ListView):
+    """class to render all movie register"""
+    model = Movie
+    template_name = 'MoviesApp/list_movie.html'
 
-class Login(View):
+    def get_context_data(self, **kwargs):
+        context = super(MovieList, self).get_context_data(**kwargs)
+        context['form'] = SearchMovieForm()
+        try:
+            movies = search(self.request.GET)
+            context['movies'] = movies
+            context.update({'object_list': movies})
+            context['object_list'] = movies
 
-    def __init__(self):
-        self.template = 'MoviesApp/login.html'
-        self.login_form = LoginForm
-
-    def get(self ,request , *args , **kwargs):
-        """return template for login user"""
-        logi_form = LoginForm
-        return render(request , self.template , {'form':logi_form})
-
-    def post(self , request):
-        """validate the autenthicate user """
-        form_login = LoginForm(request.POST)
-        if form_login.is_valid():
-            user_name = form_login.cleaned_data['user_name']
-            password = form_login.cleaned_data['password']
-            user = authenticate(username=user_name, password=password)
-            if user is not None:
-                return redirect('list_movie')
-            else:
-                print('no valid')
-                return render(request, self.template, {'form': form_login})
+        except:
+            pass
+        return context
 
 
-class MovieProcess(View):
+class DetailMovie(DetailView):
+    """class to show info of movie selected"""
+    context_object_name = 'movie'
+    model = Movie
+    template_name = 'MoviesApp/rate_movie.html'
+    pk_url_kwarg = 'id'
 
-    def __init__(self):
-        """initials atribute for movie"""
-        self.model = Movie
-        self.template = 'MoviesApp/list_movie.html'
+    def post(self, request, *args, **kwargs):
+        """save rate of movie in to MovieRate"""
+        rate_movie = Movie_Rate()
+        form = dict(request.POST)
+        del form['csrfmiddlewaretoken']
+        movie = Movie.objects.get(id=form.get('id')[0])
+        rate = form.get('rate')
+        coment = form.get('coment')[0]
 
-    def get(self , request , id = None):
-        """return movielist template"""
-        if id is None:
-            movies = Movie.objects.all()
-            list_movies = {'list_movie':movies}
-            return render(request ,self.template, list_movies)
-        movie = Movie.objects.get(id = id)
-        return render(request , 'MoviesApp/rate_movie.html' , {'movie':movie})
-
-
-
-
-
-
-
-
-
+        rate_movie.movie = movie
+        rate_movie.coment = coment
+        rate_movie.cualifity = rate_movie
+        rate_movie.user = request.user
+        rate_movie.save()
+        return HttpResponse('nothing')
 
 
+class ResponseMovie(ListView):
+    template_name = 'MoviesApp/rate_movie.html'
+    model = Movie
+    queryset = Movie.objects.all()
+    context_object_name = 'movie_seriealizer'
+
+    def get_context_data(self, *args, object_list=None, **kwargs):
+        data = super(ResponseMovie, self).get_context_data(object_list=object_list, **kwargs)
+        data.update({'objects': JSONRenderer().render(MovieSerializer(self.queryset, many=True).data)})
+        return data
+
+    def render_to_response(self, context, **kwargs):
+        response = context.get('objects', '')
+        return HttpResponse(response, content_type=self.content_type)
 
 
+class DetailMovieSerialize(DetailView):
+    model = Movie
+    pk_url_kwarg = 'id'
+    template_name = 'MoviesApp/rate_movie.html'
+
+    def get_context_data(self, object=None, *args, **kwargs):
+        data = super(DetailMovieSerialize, self).get_context_data(object=object, **kwargs)
+        data.update({'object': self.get_object()})
+        return data
+
+    def render_to_response(self, context, **response_kwargs):
+        data = JSONRenderer().render(MovieSerializer(context.get('object', '')).data)
+        return HttpResponse(data, content_type=self.content_type)
 
 
+class MovieListView(ListAPIView):
+    queryset = MovieSerial.objects.all()
+    serializer_class = MovieSerializerRest
 
 
+class MovieDetailView(RetrieveAPIView):
+    queryset = MovieSerial.objects.all()
+    serializer_class = MovieSerializerRest
+    lookup_field = 'pk'
 
 
+class MovieCreateView(CreateAPIView):
+    # queryset = Movie.objects.all()
+    model = MovieSerial
+    serializer_class = MovieSerializerRest
+
+class MovieRest(mixins.RetrieveModelMixin,
+                mixins.UpdateModelMixin,
+                mixins.DestroyModelMixin,
+                mixins.CreateModelMixin,
+                generics.GenericAPIView):
+    queryset = MovieSerial.objects.all()
+    serializer_class = MovieSerializerRest
+    permission_classes = [PermitionsAlterMovies]
+    filterset_class = MovieFilter
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('pk'):
+            return self.retrieve(request, *args, **kwargs)
+        data_serialize = MovieSerializerRest(self.get_queryset(), many=True)
+        return Response(data_serialize.data)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)

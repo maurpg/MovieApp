@@ -5,45 +5,7 @@ class MovieForm(forms.ModelForm):
 
     class Meta:
         model =  Movie
-
-        fields = [
-            'title',
-            'duration',
-            'detail',
-            'trailer_url',
-            'director',
-            'genere',
-            'languaje',
-            'country',
-            'image',
-         ]
-
-        labels = {
-            'title':'Title',
-            'duration':'Duration',
-            'detail':'Detail',
-            'trailer_url':'Url triler',
-            'director':'Director',
-            'genere':'Genere',
-            'languaje':'Languaje',
-            'country':'Country',
-            'image':'Image',
-        }
-
-        widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'duration': forms.TextInput(attrs={'class': 'form-control'}),
-            'detail': forms.TextInput(attrs={'class': 'form-control'}),
-            'trailer_url': forms.TextInput(attrs={'class': 'form-control'}),
-            'director': forms.Select(attrs={'class': 'form-control'}),
-            'genere':forms.Select(attrs={'class': 'form-control'}),
-            'languaje': forms.Select(attrs={'class': 'form-control'}),
-            'country': forms.TextInput(attrs={'class': 'form-control'}),
-        
-
-
-
-        }
+        fields = '__all__'
 
 
 class MovieActorForm(forms.ModelForm):
@@ -109,6 +71,20 @@ class MovieRateForm(forms.ModelForm):
         }
 
 
+class RateForm(forms.Form):
+
+    class Meta:
+        model = Movie_Rate
+        fields = ['cualifity','movie','coment']
+
+        labels = {'cualifity':'Rate','movie':'movie','coment':'Coment'}
+
+        widgets = {
+            'cualifity':forms.Select(attrs={'class':'form-class'}),
+            'movie':forms.TextInput(attrs={'class':'form-class'}),
+            'coment':forms.TextInput(attrs={'class':'form-class'})
+        }
+
 class LoginForm(forms.Form):
     user_name = forms.CharField(label='user_name' , max_length=100)
     password = forms.CharField(label='password' , widget=forms.PasswordInput)
@@ -118,3 +94,14 @@ class RegisterForm(forms.Form):
     password =  forms.CharField(label='password' , widget=forms.PasswordInput)
     confirm_password = forms.CharField(label='confirm password', widget=forms.PasswordInput)
 
+class SearchMovieForm(forms.Form):
+
+    types = (
+        ('title','Name'),
+        ('director','Director'),
+        ('genere' , 'Genere')
+    )
+
+    search_for = forms.ChoiceField(choices=types)
+
+    search =  forms.CharField(label = 'Search' , max_length=100)

@@ -13,22 +13,28 @@
     <link href="https://fonts.googleapis.com/css?family=Droid+Sans:400,700" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.8.1/baguetteBox.min.css">
     <link rel="stylesheet" href="{% static '/css/thumbnail-gallery.css' %}"  type="text/css">
-
-
 </head>
 <body>
 
 <div class="container gallery-container">
 
+
     <h1>Movie Description</h1>
 
-    <p class="page-description text-center">Movies</p>
 
 
+    <p class="page-description text-center">List of all movies register here</p>
 
+     <nav class="navbar navbar-light bg-light">
+  <form >
+    {% csrf_token %}
+    {{form.as_p}}
+    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+  </form>
+</nav>
     <div class="tz-gallery">
-       {% if list_movie %}
-          {% for movie in list_movie %}
+
+          {% for movie in object_list %}
 
         <div class="row">
 
@@ -41,12 +47,12 @@
                         <h3>{{movie.title}}</h3>
                         <p>{{movie.detail}}</p>
 
-                        <a  class="btn btn-primary" href="{% url 'list_movie' id=movie.id %}">Rate movie </a>
+                        <a  class="btn btn-primary" href="{% url 'detail_movie' movie.id %}">Rate movie </a>
                     </div>
                 </div>
             </div>
                {% endfor %}
-            {% endif %}
+
 
 
         </div>

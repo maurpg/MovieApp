@@ -60,3 +60,15 @@ class Movie_Rate(models.Model):
     movie = models.ForeignKey(Movie , on_delete=models.CASCADE)
     user = models.ForeignKey(user , on_delete=models.CASCADE)
     coment = models.CharField(max_length=30 , choices=cualifity)
+
+    class Meta:
+        unique_together = (('user', 'movie'),)
+
+class MovieSerial(models.Model):
+
+    title_movie =  models.CharField(max_length = 100)
+    detail_movie = models.CharField(max_length = 100)
+    trailer_url = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.title_movie
